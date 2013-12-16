@@ -19,12 +19,12 @@ getGBIFData='#!/usr/bin/env python\n\rimport urllib2\n\rimport json\n\rimport sy
 storeInMongo="#!/usr/bin/env python\n\rimport sys,json\n\rfrom pymongo import MongoClient\n\r\n\rclient = MongoClient('localhost')\n\rdb = client."$DB"\n\r\n\rfor line in sys.stdin:\n\r\tline = line.strip()\n\r\tsp,data = line.split('|',1)\n\r\tcol = db[sp.replace('.','')]\n\r\ttry:\n\r\t\tdoc=json.loads(data.replace(\"u'\",'\"').replace(\"'\",'\"').replace('XXXX',''))\n\r\texcept:\n\r\t\tcontinue\n\r\tcol.insert(doc)\n"
 justPrint='#!/usr/bin/env python\n\rfrom operator import itemgetter\n\rimport sys\n\r\n\rcurrent_word = None\n\rword = None\n\r\n\rfor line in sys.stdin:\n\r\tline = line.strip()\n\r\tword = line\n\r\tif current_word is None or current_word != word:\n\r\t\tcurrent_word = word\n\r\t\tprint "%s" % (line)\n'
 mrstream="/usr/lib/hadoop-mapreduce/hadoop-streaming-2.0.2-alpha.jar"
-echo -e $getGBIFData > getGBIFData.py
-echo -e $getFullRecFromIds > getFullRecFromIds.py
-echo -e $getNucIdsMap > getNucIdsMap.py
-echo -e $storeInMongo > storeInMongo.py
-echo -e $justPrint > justPrint.py
-exit
+#echo -e $getGBIFData > getGBIFData.py
+#echo -e $getFullRecFromIds > getFullRecFromIds.py
+#echo -e $getNucIdsMap > getNucIdsMap.py
+#echo -e $storeInMongo > storeInMongo.py
+#echo -e $justPrint > justPrint.py
+#exit
 
 
 # Drop mongoDB first
