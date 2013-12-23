@@ -36,13 +36,23 @@ echo -e $getGBIFData > getGBIFData_$date.py
 chmod +x getGBIFData_$date.py
 echo -e $justPrint > justPrint_$date.py
 chmod +x justPrint_$date.py
-hadoop jar $mrstream -D mapreduce.job.maps=100 -input $input -mapper getGBIFData_$date.py -file getGBIFData_$date.py -reducer justPrint_$date.py -file justPrint_$date.py -output eurisco_germ_$date/species
+hadoop jar $mrstream -D mapreduce.job.maps=40 -input $input -mapper getGBIFData_$date.py -file getGBIFData_$date.py -reducer justPrint_$date.py -file justPrint_$date.py -output eurisco_germ_$date/species
+if [ $? != 0 ]; then
+	echo "MR1 failed!"
+	rm getGBIFData_$date.py justPrint_$date.py
+	exit 1
+fi
 rm getGBIFData_$date.py
 # Second stage: For each species found in GBIF, get available gene data. 
 echo -e $getNucIdsMap > getNucIdsMap_$date.py
 sed -i "s/XXXX/\\\'/g" getNucIdsMap_$date.py
 chmod +x getNucIdsMap_$date.py
 hadoop jar $mrstream -D mapreduce.job.maps=100 -input eurisco_germ_$date/species -mapper getNucIdsMap_$date.py  -file getNucIdsMap_$date.py -reducer justPrint_$date.py -file justPrint_$date.py -output eurisco_germ_$date/ids
+if [ $? != 0 ]; then
+        echo "MR2 failed!"
+	rm getNucIdsMap_$date.py justPrint_$date.py
+        exit 1
+fi
 rm getNucIdsMap_$date.py justPrint_$date.py
 # Third stage, store genetic data for each species in a different collection.
 echo -e $storeInMongo > storeInMongo_$date.py
@@ -51,6 +61,11 @@ chmod +x storeInMongo_$date.py
 echo -e $getFullRecFromIds > getFullRecFromId_$date.py
 chmod +x getFullRecFromId_$date.py
 hadoop jar $mrstream -D mapreduce.job.maps=25 -D mapreduce.map.memory.mb="8192" -D mapred.child.java.opts="-Xmx512M" -input eurisco_germ_$date/ids -mapper getFullRecFromId_$date.py -file getFullRecFromId_$date.py -reducer storeInMongo_$date.py -file storeInMongo_$date.py -output eurisco_germ/final_$date
+if [ $? != 0 ]; then
+        echo "MR3 failed!"
+	rm storeInMongo_$date.py getFullRecFromId_$date.py
+        exit 1
+fi
 rm storeInMongo_$date.py getFullRecFromId_$date.py
 # Remove leftovers...
-#hadoop fs -rm -r eurisco_germ_$date
+hadoop fs -rm -r eurisco_germ_$date
